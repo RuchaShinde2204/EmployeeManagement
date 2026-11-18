@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'JDK21'
+        maven 'Maven'
+    }
+
+    stages {
+
+        stage('Source Code Retrieval') {
+            steps {
+                checkout scm
+                echo 'Source code retrieved successfully'
+            }
+        }
+
+        stage('Compilation') {
+            steps {
+                bat 'mvn clean compile'
+            }
+        }
+
+        stage('Testing') {
+            steps {
+                bat 'mvn test'
+                junit 'target/surefire-reports/*.xml'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                bat 'mvn package'
+            }
+        }
+
+        stage('Build Verification') {
+            steps {
+                bat 'dir target\\*.jar'
+                archiveArtifacts artifacts: 'target/*.jar'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'BUILD SUCCESSFUL'
+        }
+        failure {
+            echo 'BUILD FAILED'
+        }
+    }
+}
